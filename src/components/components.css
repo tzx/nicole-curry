@@ -1,0 +1,22 @@
+.focused-cell {
+  display: inline-block;
+  border: solid blue;
+  margin-left: 0.125rem;
+  margin-right: 0.125rem;
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.cell {
+  display: inline-block;
+  border: solid red;
+  margin-left: 0.125rem;
+  margin-right: 0.125rem;
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.row {
+  display: flex;
+  margin-bottom: 0.5rem;
+}

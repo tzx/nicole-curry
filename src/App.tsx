@@ -1,9 +1,9 @@
-import Cell from './components/Cell'
-import Row from './components/Row'
+import Cell from './components/Cell';
+import Row from './components/Row';
 import SizePicker from './components/SizePicker';
-import DirectionDisplay from './components/DirectionDisplay'
-import { useBoardStore } from './zus/BoardStore'
-import useKeyHook from './KeyHook'
+import DirectionDisplay from './components/DirectionDisplay';
+import { useBoardStore } from './zus/BoardStore';
+import useKeyHook from './KeyHook';
 
 const Board = () => {
   const board = useBoardStore((state) => state.board)

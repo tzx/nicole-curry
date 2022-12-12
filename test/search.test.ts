@@ -9,9 +9,8 @@ test('Simple Row Search', () => {
   board[0][0] = "c";
 
   const results = [];
-  search(board, ["p", "a", "t", "d"], DIR.HORIZONTAL, [], 0, 0, results, trie);
+  search(board, ["p", "a", "t", "d"], DIR.HORIZONTAL, [], 0, 0, results, { collides: false, usesLetter: false }, trie);
 
-  console.log(results);
   assert(results.length === 1);
   expect(results[0]).eq("cat");
 })
@@ -22,7 +21,7 @@ test('Simple Column Search', () => {
   board[0][0] = "d";
 
   const results = [];
-  search(board, ["o", "e", "p", "g"], DIR.VERTICAL, [], 0, 0, results, trie);
+  search(board, ["o", "e", "p", "g"], DIR.VERTICAL, [], 0, 0, results, { collides: false, usesLetter: false }, trie);
 
   assert(results.length === 1);
   expect(results[0]).eq("doge");
@@ -34,7 +33,7 @@ test('Two row words: one goes to bounds, one before bounds', () => {
   board[0][0] = "c";
 
   const results = [];
-  search(board, ["p", "a", "t", "d", "e"], DIR.HORIZONTAL, [], 0, 0, results, trie);
+  search(board, ["p", "a", "t", "d", "e"], DIR.HORIZONTAL, [], 0, 0, results, { collides: false, usesLetter: false }, trie);
 
   expect(results).to.have.members(["cat", "cape"]);
 })
@@ -55,7 +54,6 @@ test('Cross Search', () => {
   board[1][0] = "t";
   board[1][1] = "t";
   const words = searchBoard(board, ["c", "a", "t"], trie);
-  console.log(words);
   const expected = [
                     { row: 0, col: 0, direction: DIR.HORIZONTAL, word: "cat" },
                     { row: 0, col: 0, direction: DIR.VERTICAL, word: "ct" },
@@ -75,5 +73,20 @@ test('Cross Search prevents', () => {
   board[1][1] = "t";
   board[1][2] = "t";
   const words = searchBoard(board, ["t", "e", "a"], trie);
+  assert(words.length === 0);
+})
+
+test('Must use at least one letter', () => {
+  const trie = Trie.from(["met"]);
+  const board = [["m", "e", "t"]];
+  const words = searchBoard(board, ["a", "b", "c"], trie);
+  assert(words.length === 0);
+})
+
+test('Must collide', () => {
+  const trie = Trie.from(["sex"]);
+  const board = Array.from({length: 3}, () => Array.from({length:5}, () => ""));
+  board[1][2] = "r";
+  const words = searchBoard(board, ["s", "e", "x", "y"], trie);
   assert(words.length === 0);
 })

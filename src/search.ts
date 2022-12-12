@@ -8,6 +8,15 @@ interface SearchResult {
   word: string,
 }
 
+interface CanBePlacedConfig {
+  // Touches a cell that has been placed before
+  collides: boolean,
+  // Uses a letter from your source of letters
+  usesLetter: boolean,
+}
+
+// Returns res = [boolean, boolean] where res[0] returns whether it's a valid placement
+// and res[1] determines if we are using more than one letter to check if it's an actual collision
 const validCross = (
   board: string[][],
   row: number,
@@ -32,10 +41,11 @@ const validCross = (
   }
   const word = [...prev.reverse(), char, ...forward].join("");
   if (word.length == 1) {
-    return true;
+    return [true, false];
   }
 
-  return wordTrie.has(word);
+  // TODO: update score
+  return [wordTrie.has(word), true];
 }
 
 const newRowCol = (row: number, col: number, direction: DIR) => {
@@ -53,12 +63,12 @@ export const search = (
   row: number,
   col: number,
   results: string[],
+  canBePlaced: CanBePlacedConfig,
   wordTrie = defaultWordTrie,
 ) => {
-  // TODO: needs to touch
   const buildString = build.join("");
   if (row >= board.length || col >= board[0].length) {
-    if (wordTrie.has(buildString)) {
+    if (wordTrie.has(buildString) && Object.values(canBePlaced).every(x => x)) {
       results.push(buildString);
     }
     return;
@@ -69,7 +79,7 @@ export const search = (
   }
 
   if (board[row][col] === "") {
-    if (wordTrie.has(buildString)) {
+    if (wordTrie.has(buildString) && Object.values(canBePlaced).every(x => x)) {
       results.push(buildString);
     }
   }
@@ -79,7 +89,7 @@ export const search = (
   if (board[row][col] !== "") {
     // continue searching
     build.push(board[row][col]);
-    search(board, letters, direction, build, newRow, newCol, results, wordTrie);
+    search(board, letters, direction, build, newRow, newCol, results, {...canBePlaced, collides: true }, wordTrie);
     build.pop();
     return;
   }
@@ -87,7 +97,8 @@ export const search = (
   for (let i = 0; i < letters.length; i++) {
     const char = letters[i];
     const rest = [...letters.slice(0, i), ...letters.slice(i + 1)];
-    if (!validCross(board, row, col, direction, char, wordTrie)) {
+    const [validPlacement, collidesWord] = validCross(board, row, col, direction, char, wordTrie);
+    if (!validPlacement) {
       continue;
     }
     board[row][col] = char;
@@ -100,6 +111,7 @@ export const search = (
       newRow,
       newCol,
       results,
+      { collides: collidesWord || canBePlaced["collides"], usesLetter: true },
       wordTrie
     );
     build.pop();
@@ -117,7 +129,7 @@ export const searchBoard = (
     for (let c = 0; c < board[0].length; c++) {
       if (r === 0 || board[r-1][c] == "") {
         const vertResult: string[] = [];
-        search(board, letters, DIR.VERTICAL, [], r, c, vertResult, wordTrie);
+        search(board, letters, DIR.VERTICAL, [], r, c, vertResult, { usesLetter: false, collides: false }, wordTrie);
         const vr = vertResult.map((word) => {
           return {
             row: r,
@@ -130,7 +142,7 @@ export const searchBoard = (
       }
       if (c === 0 || board[r][c-1] == "") {
         const horResult: string[] = [];
-        search(board, letters, DIR.HORIZONTAL, [], r, c, horResult, wordTrie);
+        search(board, letters, DIR.HORIZONTAL, [], r, c, horResult, { collides: false, usesLetter: false }, wordTrie);
         const hr = horResult.map((word) => {
           return {
             row: r,
